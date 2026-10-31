@@ -1123,6 +1123,7 @@ kbd {
   }
   .header-actions .text-button {
     min-height: 40px;
+    min-width: 40px;
   }
   .header-actions .text-button span {
     display: none;

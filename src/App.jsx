@@ -11,6 +11,8 @@ import {
   RotateCw,
   Ship,
   Shuffle,
+  Volume2,
+  VolumeX,
   Waves,
   X,
 } from 'lucide-react';
@@ -27,6 +29,7 @@ import {
   randomBoard,
   remainingShips,
 } from './game/engine.js';
+import { createBattleAudio } from './game/audio.js';
 
 function ShipSilhouette({ length = 5, sunk = false }) {
   return (
@@ -239,6 +242,8 @@ function Modal({ title, children, onClose, className = '' }) {
 
 export default function App() {
   const [game, dispatch] = useReducer(gameReducer, undefined, initialGame);
+  const [audio] = useState(createBattleAudio);
+  const [soundEnabled, setSoundEnabled] = useState(true);
   const [selected, setSelected] = useState(FLEET[0].id);
   const [direction, setDirection] = useState('horizontal');
   const [notice, setNotice] = useState('');
@@ -247,6 +252,12 @@ export default function App() {
   const finished = game.phase === 'finished';
   const ready = game.player.ships.length === FLEET.length;
   const isPlayerTurn = game.turn === 'player';
+
+  useEffect(() => {
+    if (game.lastShot) audio.play(game.lastShot.sunk ? 'sunk' : game.lastShot.result);
+  }, [game.lastShot, audio]);
+
+  useEffect(() => () => audio.dispose(), [audio]);
 
   useEffect(() => {
     if (game.phase !== 'battle' || game.turn !== 'ai') return;
@@ -292,6 +303,7 @@ export default function App() {
   }
 
   function newGame() {
+    audio.stop();
     dispatch({ type: 'NEW_GAME' });
     setSelected(FLEET[0].id);
     setDirection('horizontal');
@@ -334,6 +346,21 @@ export default function App() {
           <span className="offline-label">
             <i /> SOLO VS. AI
           </span>
+          <button
+            className="text-button"
+            aria-label="Sound effects"
+            aria-pressed={soundEnabled}
+            title={soundEnabled ? 'Mute sound' : 'Unmute sound'}
+            onClick={() => {
+              const enabled = !soundEnabled;
+              audio.setEnabled(enabled);
+              setSoundEnabled(enabled);
+              if (enabled) audio.unlock();
+            }}
+          >
+            {soundEnabled ? <Volume2 size={17} /> : <VolumeX size={17} />}
+            <span>Sound {soundEnabled ? 'on' : 'off'}</span>
+          </button>
           <button className="text-button" aria-label="How to play" onClick={() => setModal('help')}>
             <CircleHelp size={17} />
             <span>How to play</span>
@@ -430,7 +457,10 @@ export default function App() {
             turn={game.turn}
             selected={selected}
             direction={direction}
-            onFire={(cell) => dispatch({ type: 'PLAYER_FIRE', cell })}
+            onFire={(cell) => {
+              audio.unlock();
+              dispatch({ type: 'PLAYER_FIRE', cell });
+            }}
           />
         </div>
 
@@ -525,6 +555,7 @@ export default function App() {
                 className="primary-button"
                 disabled={!ready}
                 onClick={() => {
+                  audio.unlock();
                   dispatch({ type: 'START', board: randomBoard() });
                   setNotice('');
                 }}
@@ -654,7 +685,9 @@ export default function App() {
           </ol>
           <p className="keyboard-note">
             Keyboard: Tab to a board, arrow keys to navigate, Enter or Space to place / fire. Escape
-            closes dialogs. Games stay in this tab; refreshing starts over.
+            closes dialogs. Games stay in this tab; refreshing starts over. Hits have a short impact
+            sound; sinking adds a deeper descending sound. Toggle Sound effects in the header to
+            mute or unmute.
           </p>
           <button className="primary-button" onClick={() => setModal(null)}>
             Ready, Captain

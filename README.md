@@ -37,6 +37,7 @@ npm run preview
 - Crosses are hits; dots are misses. Fully hit ships turn rust red and are marked sunk in Fleet intelligence. Enemy positions remain hidden until sunk or the game ends.
 - Sink the entire opposing fleet to win. After the result, both boards are locked and all ships are revealed.
 - **New game** resets everything. An active game or existing deployment asks for confirmation first.
+- **Sound effects:** Hits by either side play a short impact. Sinking adds a deeper, descending sound, including on the final winning/losing shot. Use the header's speaker button to mute/unmute; the setting survives New game but resets on reload. Misses are silent.
 - **Keyboard:** Tab to a board; arrow keys move within it; Home / End move within a row; Enter / Space place or shoot. Escape dismisses dialogs.
 
 ## AI
@@ -48,6 +49,8 @@ The AI receives only its prior shots and unsunk hit coordinates—not unhit play
 ```text
 src/game/engine.js        Immutable board operations, AI targeting, game reducer
 src/game/engine.test.js   Vitest engine and seeded simulation tests
+src/game/audio.js         Local Web Audio hit/sinking synthesis and mute handling
+src/game/audio.test.js    Audio scheduling, mute, cleanup, and fallback tests
 src/App.jsx              React UI, placement controls, accessible board, dialogs
 src/App.test.jsx         Component interaction and timer regression tests
 src/styles.css           Responsive visual design and reduced-motion support
@@ -56,6 +59,8 @@ src/test/setup.js        DOM test environment
 ```
 
 The reducer is the authority for phase, turn, shots, winner, and restart. Invalid actions return the current state. The UI’s AI timer is cleaned up on turn changes, restart, and unmount to prevent delayed shots leaking into a new game. The browser contains no test-only routes or gameplay cheats.
+
+Audio is synthesized locally with the Web Audio API: no media downloads or third-party service. The audio context is activated by Start battle, a shot, or unmuting to respect browser autoplay policies. Accepted shot events trigger effects once for either side; mute/restart cancels active and queued sounds. Unsupported or blocked audio never prevents gameplay.
 
 ## Quality checks
 
@@ -92,7 +97,8 @@ Import this repository, choose **Vite**, set install to `npm ci`, build to `npm 
 - Game state lives in memory. Reloading or closing the tab starts over; New game resets in place.
 - Fair-play secrecy is visual, not cryptographic: a determined user can inspect a client-only game’s memory. This is not a competitive anti-cheat service.
 - Modern browsers required (native `<dialog>`, CSS grid, ES modules). Mobile browsers use a stacked layout.
-- No audio, ads, login, analytics, cookies, or paid services.
+- No ads, login, analytics, cookies, paid services, or external audio assets.
+- Sounds require Web Audio support and an unmuted browser/device. Browser autoplay policies require a user interaction before audio starts.
 - JavaScript project: static checks are ESLint, not a TypeScript type-check step.
 
 ## License

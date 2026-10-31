@@ -208,6 +208,30 @@ describe('turns, end conditions, and restart', () => {
     state = gameReducer(state, { type: 'AI_FIRE', cell: 99 });
     expect(gameReducer(state, { type: 'PLAYER_FIRE', cell: 0 })).toBe(state);
   });
+  it.each(['player', 'ai'])(
+    'records %s hit, miss, and sinking events only for accepted shots',
+    (who) => {
+      const target = who === 'player' ? 'enemy' : 'player';
+      const type = who === 'player' ? 'PLAYER_FIRE' : 'AI_FIRE';
+      const state = { ...battle(), turn: who };
+      const hit = gameReducer(state, { type, cell: 80 });
+      expect(hit.lastShot).toEqual({ result: 'hit', sunk: false });
+      expect(gameReducer(hit, { type, cell: 80 }).lastShot).toBe(hit.lastShot);
+      const sunk = gameReducer({ ...hit, turn: who }, { type, cell: 81 });
+      expect(sunk.lastShot).toEqual({ result: 'hit', sunk: true });
+      expect(
+        isSunk(
+          sunk[target],
+          sunk[target].ships.find((ship) => ship.id === 'destroyer'),
+        ),
+      ).toBe(true);
+      expect(gameReducer(state, { type, cell: 99 }).lastShot).toEqual({
+        result: 'miss',
+        sunk: false,
+      });
+      expect(gameReducer(sunk, { type: 'NEW_GAME' }).lastShot).toBeNull();
+    },
+  );
   it('clears sunk AI target hits but preserves nearby hits from other ships', () => {
     const state = {
       ...battle(),

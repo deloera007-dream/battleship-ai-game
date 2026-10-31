@@ -137,6 +137,7 @@ export const initialGame = () => ({
   winner: null,
   log: [],
   round: 1,
+  lastShot: null,
 });
 
 function shotMessage(who, cell, result, sunk) {
@@ -185,6 +186,7 @@ export function gameReducer(state, action) {
     winner: won ? state.turn : null,
     turn: won ? state.turn : playerTurn ? 'ai' : 'player',
     round: state.round + (playerTurn ? 0 : 1),
+    lastShot: { result: shot.result, sunk: Boolean(shot.sunk) },
     log: [
       shotMessage(playerTurn ? 'You' : 'Opponent', action.cell, shot.result, shot.sunk),
       ...state.log,

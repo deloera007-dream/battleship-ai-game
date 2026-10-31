@@ -41,7 +41,8 @@ The first Vitest run exposed two overly broad queries in the new component tests
 
 ## Automated checks executed
 
-- **Vitest:** 58 tests passed across two files in the latest completed run. Coverage includes placement boundaries, overlap, touching ships, repositioning, hits/misses, invalid/duplicate shots, sinking, turn order, targeting and edge handling, victory/defeat, post-game locking, restart, AI timer cancellation, keyboard controls, dialog focus restoration, mobile Help labeling, 300 generated fleets, and 100 complete seeded simulations.
+- **Vitest:** 71 tests passed across three files in the latest completed run. Coverage includes placement boundaries, overlap, touching ships, repositioning, hits/misses, invalid/duplicate shots, sinking, turn order, targeting and edge handling, victory/defeat, post-game locking, restart, AI timer cancellation, keyboard controls, dialog focus restoration, mobile Help labeling, 300 generated fleets, and 100 complete seeded simulations.
+- **Sound coverage:** Reducer events and React integration verify player/AI hit and sink notifications, no duplicate/out-of-turn event, and mute controls. Web Audio tests cover short hit/long sinking envelopes, silent misses, lazy context creation, resume, immediate mute, cleanup, restart cancellation, and unavailable/blocked audio. Audio graph tests use mocks; public-browser audio output verification is pending.
 - **ESLint:** Passed.
 - **Prettier:** Passed.
 - **Production build:** Passed.
@@ -57,14 +58,14 @@ The first Chromium pass exercised the public GitHub Pages site without authentic
 - Arrow navigation and row-boundary handling passed. Dialog names and initial focus passed, but Escape exposed B-003 above.
 - Retesting after the focus fix passed Help/New game focus restoration, restart cancellation/confirmation, and a restart completed before the 650ms AI timer. No pending shot leaked into the new match after 900ms.
 - A second complete normal-random game reached defeat: the AI registered 17 hits across 40 unique shots, the player fleet reached zero afloat, and terminal boards locked.
-- Initial 390px layout passed: 100 cells per board, no horizontal overflow, and controls inside the viewport. The run was stopped for B-004. Its fix, remaining mobile Help interaction, mobile placement/gameplay, and 320px coverage remain to be checked.
+- Initial 390px layout passed: 100 cells per board, no horizontal overflow, and controls inside the viewport. The run was stopped for B-004. Its fix, remaining mobile Help interaction, mobile placement/gameplay, and 320px coverage remain to be checked, along with newly requested hit/sinking sounds and mute controls.
 
 ## Deployment verification
 
 - Public repository creation and source push succeeded.
 - GitHub initially rejected the integration's request to enable Pages with **HTTP 403: Resource not accessible by integration**. The subsequent GitHub Actions deployment succeeded, and Pages now reports a workflow publishing source. No further owner action is needed.
 - The public [game URL](https://deloera007-dream.github.io/battleship-ai-game/) and its production assets returned HTTP 200, without authentication. A complete signed-out browser victory was verified there.
-- The B-003 fix was deployed and passed signed-out browser retesting. The B-004 fix still needs deployment and browser retesting.
+- The B-003 fix was deployed and passed signed-out browser retesting. The B-004 fix was deployed; its mobile retest remains pending. Sound effects still need deployment and browser verification.
 
 ## Known remaining issues / scope
 

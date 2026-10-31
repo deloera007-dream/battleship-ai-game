@@ -1,7 +1,18 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import App from './App.jsx';
+import * as engine from './game/engine.js';
 
+const audio = vi.hoisted(() => ({
+  unlock: vi.fn(),
+  play: vi.fn(),
+  stop: vi.fn(),
+  setEnabled: vi.fn(),
+  dispose: vi.fn(),
+}));
+vi.mock('./game/audio.js', () => ({ createBattleAudio: () => audio }));
+
+beforeEach(() => vi.clearAllMocks());
 afterEach(() => vi.useRealTimers());
 const click = (name) => fireEvent.click(screen.getByRole('button', { name }));
 function begin() {
@@ -86,6 +97,57 @@ describe('game interface', () => {
       'aria-label',
       'How to play',
     );
+  });
+  it('emits hit and sinking events once for both the player and AI', () => {
+    vi.useFakeTimers();
+    const board = engine.FLEET.reduce(
+      (fleet, ship, index) => engine.placeShip(fleet, ship.id, index * 20, 'horizontal'),
+      engine.emptyBoard(),
+    );
+    vi.spyOn(engine, 'randomBoard').mockReturnValue(board);
+    const target = vi.spyOn(engine, 'chooseAIShot');
+    for (let cell = 0; cell < 5; cell++) target.mockReturnValueOnce(cell);
+    render(<App />);
+    begin();
+    expect(audio.unlock).toHaveBeenCalledOnce();
+    for (let column = 1; column <= 5; column++) {
+      click(`Enemy A${column}: water`);
+      const calls = audio.play.mock.calls.length;
+      click('Enemy J10: water');
+      expect(audio.play).toHaveBeenCalledTimes(calls);
+      act(() => vi.advanceTimersByTime(650));
+    }
+    expect(audio.play.mock.calls.map(([kind]) => kind)).toEqual([
+      'hit',
+      'hit',
+      'hit',
+      'hit',
+      'hit',
+      'hit',
+      'hit',
+      'hit',
+      'sunk',
+      'sunk',
+    ]);
+    click('Enemy A1: Carrier sunk');
+    expect(audio.play).toHaveBeenCalledTimes(10);
+  });
+  it('toggles sound without replaying a shot and preserves mute when restarting', () => {
+    render(<App />);
+    click('Randomize');
+    const toggle = screen.getByRole('button', { name: 'Sound effects' });
+    expect(toggle).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute('aria-pressed', 'false');
+    expect(audio.setEnabled).toHaveBeenLastCalledWith(false);
+    click(/New game/i);
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'New game' }));
+    expect(audio.stop).toHaveBeenCalledOnce();
+    expect(toggle).toHaveAttribute('aria-pressed', 'false');
+    fireEvent.click(toggle);
+    expect(audio.setEnabled).toHaveBeenLastCalledWith(true);
+    expect(audio.unlock).toHaveBeenCalledOnce();
+    expect(audio.play).not.toHaveBeenCalled();
   });
   it.each(['Escape', 'close button', 'backdrop'])(
     'restores help trigger focus after dismissal via %s',
