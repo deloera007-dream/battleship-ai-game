@@ -4,7 +4,9 @@ A responsive, single-player Battleship game built with **React, Vite, and JavaSc
 
 ## Play
 
-The intended GitHub Pages address is **https://deloera007-dream.github.io/battleship-ai-game/**. Deployment is not yet verified; see [BUG_REPORT.md](./BUG_REPORT.md) for the current release verification record.
+**Play now: https://deloera007-dream.github.io/battleship-ai-game/**
+
+GitHub Pages is enabled and a complete game has been played on the public site without authentication. See [BUG_REPORT.md](./BUG_REPORT.md) for the release verification record and remaining coverage.
 
 ## Local development
 

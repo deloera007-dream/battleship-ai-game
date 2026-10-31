@@ -207,7 +207,13 @@ function Modal({ title, children, onClose, className = '' }) {
   const dialog = useRef(null);
   const titleId = useId();
   useEffect(() => {
-    dialog.current.showModal();
+    const element = dialog.current;
+    const trigger = document.activeElement;
+    element.showModal();
+    return () => {
+      element.close();
+      if (trigger instanceof HTMLElement && trigger.isConnected) trigger.focus();
+    };
   }, []);
   return (
     <dialog

@@ -80,6 +80,38 @@ describe('game interface', () => {
     click('Ready, Captain');
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
+  it.each(['Escape', 'close button', 'backdrop'])(
+    'restores help trigger focus after dismissal via %s',
+    (method) => {
+      render(<App />);
+      const trigger = screen.getByRole('button', { name: /How to play/ });
+      trigger.focus();
+      fireEvent.click(trigger);
+      const dialog = screen.getByRole('dialog');
+      within(dialog).getByRole('button', { name: 'Ready, Captain' }).focus();
+      if (method === 'Escape') {
+        fireEvent(dialog, new Event('cancel', { cancelable: true }));
+      } else if (method === 'close button') {
+        fireEvent.click(within(dialog).getByRole('button', { name: 'Close dialog' }));
+      } else {
+        fireEvent.click(dialog);
+      }
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(trigger).toHaveFocus();
+    },
+  );
+  it('restores new-game trigger focus after confirming a restart', () => {
+    render(<App />);
+    click('Randomize');
+    const trigger = screen.getByRole('button', { name: /New game/i });
+    trigger.focus();
+    fireEvent.click(trigger);
+    const confirm = within(screen.getByRole('dialog')).getByRole('button', { name: 'New game' });
+    confirm.focus();
+    fireEvent.click(confirm);
+    expect(screen.getByText('0 of 5 ships deployed')).toBeInTheDocument();
+    expect(trigger).toHaveFocus();
+  });
   it('supports bounded arrow-key navigation on the board', () => {
     render(<App />);
     const first = screen.getByRole('button', { name: 'Your A1: water' });
