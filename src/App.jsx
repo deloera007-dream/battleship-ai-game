@@ -334,7 +334,7 @@ export default function App() {
           <span className="offline-label">
             <i /> SOLO VS. AI
           </span>
-          <button className="text-button" onClick={() => setModal('help')}>
+          <button className="text-button" aria-label="How to play" onClick={() => setModal('help')}>
             <CircleHelp size={17} />
             <span>How to play</span>
           </button>

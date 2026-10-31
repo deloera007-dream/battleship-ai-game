@@ -80,6 +80,13 @@ describe('game interface', () => {
     click('Ready, Captain');
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
+  it('keeps an explicit accessible name when the mobile help text is hidden', () => {
+    render(<App />);
+    expect(screen.getByRole('button', { name: /How to play/ })).toHaveAttribute(
+      'aria-label',
+      'How to play',
+    );
+  });
   it.each(['Escape', 'close button', 'backdrop'])(
     'restores help trigger focus after dismissal via %s',
     (method) => {
