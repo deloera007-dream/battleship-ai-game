@@ -33,7 +33,7 @@ npm run preview
 - Ships may touch, including at edges; they cannot overlap, wrap across rows, or leave the board.
 - **Randomize** deploys a complete valid fleet; **Clear** removes all placements.
 - **Start battle** unlocks only after all five ships are placed. You shoot first.
-- Select an untried square in enemy waters. Both sides get **one shot per turn, even on a hit**.
+- Select an untried square on **Captain Ignacio**’s board. Both sides get **one shot per turn, even on a hit**.
 - Crosses are hits; dots are misses. Fully hit ships turn rust red and are marked sunk in Fleet intelligence. Enemy positions remain hidden until sunk or the game ends.
 - Sink the entire opposing fleet to win. After the result, both boards are locked and all ships are revealed.
 - **New game** resets everything. An active game or existing deployment asks for confirmation first.

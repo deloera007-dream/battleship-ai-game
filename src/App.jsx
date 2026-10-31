@@ -82,7 +82,7 @@ function Board({ board, enemy = false, phase, turn, selected, direction, onPlace
   return (
     <section
       className={`board-card ${enemy ? 'enemy-board' : 'player-board'}`}
-      aria-label={enemy ? 'Enemy waters' : 'Your waters'}
+      aria-label={enemy ? 'Captain Ignacio' : 'Your waters'}
     >
       <div className="board-heading">
         <div className="board-title">
@@ -90,7 +90,7 @@ function Board({ board, enemy = false, phase, turn, selected, direction, onPlace
             {enemy ? <Crosshair size={20} /> : <Anchor size={20} />}
           </span>
           <div>
-            <h2>{enemy ? 'Enemy waters' : 'Your waters'}</h2>
+            <h2>{enemy ? 'Captain Ignacio' : 'Your waters'}</h2>
             <p>{enemy ? 'UNKNOWN TERRITORY' : 'HOME FLEET'}</p>
           </div>
         </div>
@@ -112,7 +112,7 @@ function Board({ board, enemy = false, phase, turn, selected, direction, onPlace
         <div
           className="board-grid"
           role="group"
-          aria-label={`${enemy ? 'Enemy' : 'Your'} 10 by 10 board`}
+          aria-label={`${enemy ? 'Captain Ignacio’s' : 'Your'} 10 by 10 board`}
           onMouseLeave={() => setHovered(null)}
         >
           <span className="axis-corner" aria-hidden="true">
@@ -671,8 +671,9 @@ export default function App() {
             <li>
               <b>Take your shot</b>
               <p>
-                Start battle, then select a square in enemy waters. You and the AI alternate one
-                shot per turn, even after a hit. A cross marks a hit; a dot marks a miss.
+                Start battle, then select a square on Captain Ignacio’s board. You and the AI
+                alternate one shot per turn, even after a hit. A cross marks a hit; a dot marks a
+                miss.
               </p>
             </li>
             <li>

@@ -23,6 +23,11 @@ function begin() {
 describe('game interface', () => {
   it('starts with two full grids, concealed enemy ships, and a gated start', () => {
     render(<App />);
+    expect(screen.getByRole('heading', { name: 'Captain Ignacio' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Captain Ignacio' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('group', { name: 'Captain Ignacio’s 10 by 10 board' }),
+    ).toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: /^Your [A-J]\d+:/ })).toHaveLength(100);
     expect(screen.getAllByRole('button', { name: /^Enemy [A-J]\d+:/ })).toHaveLength(100);
     expect(screen.getByRole('button', { name: /Start battle/ })).toBeDisabled();
