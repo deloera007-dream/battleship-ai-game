@@ -62,18 +62,20 @@ The first Chromium pass exercised the public GitHub Pages site without authentic
 - A full game with sound reached defeat after 43 turns. Seventeen adjacent-targeting checks passed; AI shots remained unique, fleets sank, and the terminal board locked.
 - Actual system audio output was captured during that game: player 11 ordinary hits / 4 sinks, AI 12 ordinary hits / 5 sinks. Isolated samples distinguished short impacts from longer sinking sequences. All 84 isolated shot-signal checks matched audible hit/sink or silent miss expectations; two AI misses overlapping the prior sinking tail were excluded from silence checks.
 - Duplicate-shot, muted-hit, and unmute-without-replay windows had zero captured signal. Restart confirmed 462ms after a sinking shot cut its remaining sound tail, canceled pending AI, and reset to empty setup while preserving the sound setting.
-- The requested **Captain Ignacio** board rename still needs deployment and a final browser smoke. Gameplay and audio behavior are unchanged by that text-only edit.
+- Final signed-out smoke of the renamed deployment passed **Captain Ignacio** heading/region and board group at desktop, 390px, and 320px, plus deployment/start/fire/AI response/duplicate rejection/reset. Both 100-cell boards remained playable with no horizontal overflow.
+- Active mute passed with actual PCM output: mute was activated 71ms after a sinking shot; impact RMS was 0.02538, while the remaining tail, muted-AI, and unmute-without-replay windows were zero. A separate restart confirmed in 246ms canceled pending AI.
+- Unavailable-audio fallback passed using browser fault injection: disabling both `AudioContext` constructors before initialization still allowed a hit, AI response, Help, Sound controls, and reset without page errors. No production test-only code was added.
 
 ## Deployment verification
 
 - Public repository creation and source push succeeded.
 - GitHub initially rejected the integration's request to enable Pages with **HTTP 403: Resource not accessible by integration**. The subsequent GitHub Actions deployment succeeded, and Pages now reports a workflow publishing source. No further owner action is needed.
 - The public [game URL](https://deloera007-dream.github.io/battleship-ai-game/) and its production assets returned HTTP 200, without authentication. A complete signed-out browser victory was verified there.
-- The B-003/B-004 fixes and sound effects were deployed and passed signed-out browser retesting. The Captain Ignacio rename is awaiting deployment verification.
+- The B-003/B-004 fixes, sound effects, and Captain Ignacio rename were deployed and passed signed-out browser retesting. Final application assets were `index-p3JcWVrg.js` and `index-4cQhA7BI.css`; both verification and deployment jobs passed.
 
 ## Known remaining issues / scope
 
-- No known gameplay or sound defects from completed automated and browser checks. Final renamed-deployment smoke is pending.
+- No known gameplay or sound defects from completed automated and browser checks. All four documented application/tooling findings above were fixed and regression checked.
 - This is a client-only, single-player game. Refreshing discards the current match. There is no multiplayer, saved progress, or configurable difficulty.
 - Browser support requires modern native dialogs, CSS grid, JavaScript modules, and Web Audio for sound. Testing used Chromium desktop and mobile emulation; physical devices and other browsers were not tested.
-- Browser tests did not exercise muting during an actively playing clip or unavailable/blocked Web Audio. Immediate mute and graceful audio fallback are covered by automated tests.
+- Browser-specific autoplay blocking was not tested on physical devices or other browsers. Rejected audio activation is covered by automated tests; browsers without Web Audio were exercised with fault injection. Actual-output capture verified audio signals, not a physical device's speaker volume or silent-mode behavior.
