@@ -2,6 +2,15 @@
 
 This file records observed problems only. A passing unit test is not evidence of browser testing or a successful public deployment.
 
+## Follow-up bug hunt
+
+Two additional defects were reproduced on the public site and clean local build. Their fixes are in this follow-up branch; the published site remains unchanged until the PR is merged and deployed.
+
+| ID    | Confirmed bug                                                 | Fix                                                                 |
+| ----- | ------------------------------------------------------------- | ------------------------------------------------------------------- |
+| B-005 | Clicking interior dialog padding dismisses Help/restart       | Dismiss only when pointer coordinates are outside the dialog bounds |
+| B-006 | Interrupted audio stays silent after another shot or unmuting | Resume both suspended and interrupted audio contexts                |
+
 ## B-001 — Vulnerable development-tool dependency tree
 
 - **Discovered:** Running `npm audit` immediately after the initial dependency installation reported **9 vulnerabilities: 7 moderate and 2 critical**.
@@ -35,11 +44,37 @@ This file records observed problems only. A passing unit test is not evidence of
 - **Fix:** Add `aria-label="How to play"` directly to the button so it stays named at every viewport width.
 - **Regression tests:** A component assertion requires the explicit label; it failed before the fix and passed afterward. Public-browser retesting passed at both 390px and 320px, including accessible naming and dismissal focus.
 
+## B-005 — Interior dialog padding was treated as backdrop
+
+- **Discovered:** Targeted browser testing reproduced accidental dismissal in all eight combinations of Help/restart, public/local, and 1280px/390px viewports.
+- **Reproduction:** Open Help, or Randomize followed by New game. Click blank padding about 8px inside the dialog's left edge, halfway down. The dialog closes even though the pointer is inside it. Restart dismissal preserves the fleet; it does not reset destructively.
+- **Root cause:** Native backdrop clicks target the dialog, but clicks on the dialog's own padding do too. The handler only checked `event.target === event.currentTarget`.
+- **Fix:** Ignore child-content clicks, then check the click's client coordinates against the dialog's bounding rectangle. Only coordinates outside that rectangle dismiss it.
+- **Regression tests:** Two component cases (Help/restart) failed before the fix. They now require interior padding to remain open and an outside click to dismiss. The existing backdrop-focus test now supplies realistic geometry, since jsdom has no layout.
+- **Browser retest:** Passed against the built production output at 1280px, 390px, and 320px for both dialogs. Interior padding/title/content clicks stay open; outside-backdrop, Escape, close-button, and action-button dismissal restore trigger focus. Cancellation preserves the fleet; confirmation resets it. This verifies the local fix, not a new public deployment.
+
+## B-006 — Interrupted audio could not recover
+
+- **Discovered:** Browser fault injection around a real native AudioContext reproduced silence on public/local builds. This simulates a documented lifecycle state; no physical iOS Safari result is claimed.
+- **Reproduction:** Start a battle, suspend the underlying native context, and expose its state as `interrupted` until `resume()` is called. Fire normally until a visible hit, then mute/unmute. The old implementation makes zero native resume calls and starts zero oscillators. Captured interrupted-hit RMS was 0.00000; a suspended-state control resumed and produced RMS 0.01360.
+- **Root cause:** `unlock()` resumed only `suspended` contexts. Safari may report `interrupted` after leaving a page, switching tabs, or locking the screen; later interactions never attempted recovery from that state.
+- **Fix:** Call `resume()` for either `suspended` or `interrupted`, using the existing user-gesture activation, queued playback, rejection handling, and mute/reset cancellation.
+- **Regression tests:** Parameterize the deferred-resume test for both states. The new interrupted case failed before the fix and passes afterward; existing rejection, mute, stop, and disposal tests remain in place.
+- **Reference:** [MDN BaseAudioContext.state — resuming interrupted audio in iOS Safari](https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext/state).
+- **Browser retest:** Passed against the built production output. Injected interruption recovered through the next valid shot and mute/unmute; native resume counts increased and exposed/native states became running. The suspended-state control also passed. Captured hit RMS was about 0.01756 after each recovery path; unmute-without-replay windows were zero. Muting 94ms after a sinking shot stopped its tail; muted-AI and later unmute windows were zero. Physical Safari lifecycle behavior remains untested.
+
 ## Test-harness failures (not game bugs)
 
 The first Vitest run exposed two overly broad queries in the new component tests. `/Carrier/` matched both the fleet selector and five occupied grid cells. `New game` matched both the page action and confirmation action because jsdom's dialog stub does not implement browser modal inertness. The queries were corrected to anchor the fleet selector and scope the confirmation action to its dialog. These failures did not demonstrate broken gameplay and are not counted as game defects.
 
-## Automated checks executed
+## Follow-up automated checks executed
+
+- **Vitest:** 74 tests passed across three files. The three new cases failed before the fixes (two dialog cases and interrupted resume); the suspended-resume control passed before and afterward.
+- **ESLint, Prettier, production build:** Passed.
+- **Dependency audit:** 0 vulnerabilities.
+- **Browser retesting:** Passed on the built production output (`index-C3BL7hb7.js`). B-005/B-006 checks are detailed above. At 320px, keyboard navigation/rotation/placement, modal shortcut isolation, turn locks, duplicate rejection, and layout passed. Restart confirmed 384ms after firing prevented a pending AI shot. Missing and throwing Web Audio fallbacks remained playable without page errors/unhandled rejections. Complete games and a full uninterrupted sinking sequence were not repeated in this focused follow-up; previous release evidence is retained below.
+
+## Original release automated checks
 
 - **Vitest:** 71 tests passed across three files in the latest completed run. Coverage includes placement boundaries, overlap, touching ships, repositioning, hits/misses, invalid/duplicate shots, sinking, turn order, targeting and edge handling, victory/defeat, post-game locking, restart, AI timer cancellation, keyboard controls, dialog focus restoration, mobile Help labeling, 300 generated fleets, and 100 complete seeded simulations.
 - **Sound coverage:** Reducer events and React integration verify player/AI hit and sink notifications, no duplicate/out-of-turn event, and mute controls. Web Audio tests cover short hit/long sinking envelopes, silent misses, lazy context creation, resume, immediate mute, cleanup, restart cancellation, and unavailable/blocked audio. These use mocks; actual browser output was separately captured and checked below.
@@ -66,7 +101,7 @@ The first Chromium pass exercised the public GitHub Pages site without authentic
 - Active mute passed with actual PCM output: mute was activated 71ms after a sinking shot; impact RMS was 0.02538, while the remaining tail, muted-AI, and unmute-without-replay windows were zero. A separate restart confirmed in 246ms canceled pending AI.
 - Unavailable-audio fallback passed using browser fault injection: disabling both `AudioContext` constructors before initialization still allowed a hit, AI response, Help, Sound controls, and reset without page errors. No production test-only code was added.
 
-## Deployment verification
+## Original release deployment verification
 
 - Public repository creation and source push succeeded.
 - GitHub initially rejected the integration's request to enable Pages with **HTTP 403: Resource not accessible by integration**. The subsequent GitHub Actions deployment succeeded, and Pages now reports a workflow publishing source. No further owner action is needed.
@@ -75,7 +110,7 @@ The first Chromium pass exercised the public GitHub Pages site without authentic
 
 ## Known remaining issues / scope
 
-- No known gameplay or sound defects from completed automated and browser checks. All four documented application/tooling findings above were fixed and regression checked.
+- B-005/B-006 are fixed in this follow-up branch but remain in the published site until merge and deployment. The original four application/tooling findings were fixed and regression checked in the previous release.
 - This is a client-only, single-player game. Refreshing discards the current match. There is no multiplayer, saved progress, or configurable difficulty.
 - Browser support requires modern native dialogs, CSS grid, JavaScript modules, and Web Audio for sound. Testing used Chromium desktop and mobile emulation; physical devices and other browsers were not tested.
 - Browser-specific autoplay blocking was not tested on physical devices or other browsers. Rejected audio activation is covered by automated tests; browsers without Web Audio were exercised with fault injection. Actual-output capture verified audio signals, not a physical device's speaker volume or silent-mode behavior.

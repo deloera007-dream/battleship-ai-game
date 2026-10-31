@@ -96,6 +96,27 @@ describe('game interface', () => {
     click('Ready, Captain');
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
+  it.each(['help', 'restart'])('keeps %s open when clicking interior dialog padding', (kind) => {
+    render(<App />);
+    if (kind === 'restart') {
+      click('Randomize');
+      click(/New game/i);
+    } else {
+      click(/How to play/);
+    }
+    const dialog = screen.getByRole('dialog');
+    vi.spyOn(dialog, 'getBoundingClientRect').mockReturnValue({
+      left: 100,
+      top: 100,
+      right: 600,
+      bottom: 600,
+    });
+    fireEvent.click(dialog, { clientX: 108, clientY: 300 });
+    expect(dialog).toBeInTheDocument();
+    fireEvent.click(dialog, { clientX: 99, clientY: 300 });
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    if (kind === 'restart') expect(screen.getByText('5 of 5 ships deployed')).toBeInTheDocument();
+  });
   it('keeps an explicit accessible name when the mobile help text is hidden', () => {
     render(<App />);
     expect(screen.getByRole('button', { name: /How to play/ })).toHaveAttribute(
@@ -168,7 +189,13 @@ describe('game interface', () => {
       } else if (method === 'close button') {
         fireEvent.click(within(dialog).getByRole('button', { name: 'Close dialog' }));
       } else {
-        fireEvent.click(dialog);
+        vi.spyOn(dialog, 'getBoundingClientRect').mockReturnValue({
+          left: 10,
+          top: 10,
+          right: 310,
+          bottom: 310,
+        });
+        fireEvent.click(dialog, { clientX: 0, clientY: 0 });
       }
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
       expect(trigger).toHaveFocus();

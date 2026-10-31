@@ -94,26 +94,30 @@ describe('battle sound effects', () => {
     audio.play('hit');
     expect(oscillators).toHaveLength(7);
   });
-  it('waits for an audio context activated by a user gesture to resume', async () => {
-    const { audio, context, oscillators } = harness('suspended');
-    let finish;
-    context.resume.mockImplementation(
-      () =>
-        new Promise((resolve) => {
-          finish = () => {
-            context.state = 'running';
-            resolve();
-          };
-        }),
-    );
-    audio.unlock();
-    audio.play('hit');
-    expect(oscillators).toHaveLength(0);
-    finish();
-    await Promise.resolve();
-    await Promise.resolve();
-    expect(oscillators).toHaveLength(2);
-  });
+  it.each(['suspended', 'interrupted'])(
+    'waits for a %s audio context to resume after a user gesture',
+    async (state) => {
+      const { audio, context, oscillators } = harness(state);
+      let finish;
+      context.resume.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            finish = () => {
+              context.state = 'running';
+              resolve();
+            };
+          }),
+      );
+      audio.unlock();
+      expect(context.resume).toHaveBeenCalledOnce();
+      audio.play('hit');
+      expect(oscillators).toHaveLength(0);
+      finish();
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(oscillators).toHaveLength(2);
+    },
+  );
   it.each(['stop', 'dispose'])('cancels queued sounds on %s', async (action) => {
     const { audio, context, oscillators } = harness('suspended');
     audio.unlock();
