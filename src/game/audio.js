@@ -25,7 +25,7 @@ export function createBattleAudio(
     if (!enabled || !AudioContextClass) return;
     try {
       context ??= new AudioContextClass();
-      if (context.state === 'suspended') {
+      if (context.state === 'suspended' || context.state === 'interrupted') {
         activation = Promise.resolve(context.resume()).catch(() => {});
       }
     } catch {

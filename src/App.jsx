@@ -228,7 +228,15 @@ function Modal({ title, children, onClose, className = '' }) {
         onClose();
       }}
       onClick={(event) => {
-        if (event.target === event.currentTarget) onClose();
+        if (event.target !== event.currentTarget) return;
+        const { left, right, top, bottom } = event.currentTarget.getBoundingClientRect();
+        if (
+          event.clientX < left ||
+          event.clientX > right ||
+          event.clientY < top ||
+          event.clientY > bottom
+        )
+          onClose();
       }}
     >
       <button type="button" className="close-button" aria-label="Close dialog" onClick={onClose}>
