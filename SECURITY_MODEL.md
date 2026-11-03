@@ -11,12 +11,12 @@
 
 A public single-player browser game, documented as requiring no accounts, API keys, tracking, or backend. React renders the application, the in-memory reducer owns match state, and Web Audio synthesizes sounds locally. Node/npm builds static output that GitHub Actions publishes to GitHub Pages.
 
-| Stable component | Code covered | Responsibility and boundary |
-| --- | --- | --- |
-| Web Client | `index.html`, `src/main.jsx`, `src/App.jsx`, `src/styles.css`, `public/` | Public document, assets, UI events and DOM rendering; downloaded code runs in a visitor's browser origin. |
-| Game Runtime | `src/game/engine.js`, `src/game/audio.js` | In-memory rules/AI and local audio. This shares the Web Client's browser trust boundary, not a separate trusted server. |
+| Stable component       | Code covered                                                                                        | Responsibility and boundary                                                                                                                                                    |
+| ---------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Web Client             | `index.html`, `src/main.jsx`, `src/App.jsx`, `src/styles.css`, `public/`                            | Public document, assets, UI events and DOM rendering; downloaded code runs in a visitor's browser origin.                                                                      |
+| Game Runtime           | `src/game/engine.js`, `src/game/audio.js`                                                           | In-memory rules/AI and local audio. This shares the Web Client's browser trust boundary, not a separate trusted server.                                                        |
 | Build and Supply Chain | `package.json`, `package-lock.json`, `vite.config.js`, `eslint.config.js`, test/configuration files | npm packages, toolchain and executable build/test scripts run on developer machines or CI; dependencies and contributions cross into build execution and the delivered bundle. |
-| Static Delivery | `.github/workflows/verify.yml`, deployment guidance in `README.md` | CI artifact publication and Pages deployment cross from repository/build output to the public site. Platform settings and account controls are outside available code. |
+| Static Delivery        | `.github/workflows/verify.yml`, deployment guidance in `README.md`                                  | CI artifact publication and Pages deployment cross from repository/build output to the public site. Platform settings and account controls are outside available code.         |
 
 ## Entry points and reachability
 
